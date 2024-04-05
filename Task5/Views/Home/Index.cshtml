@@ -1,0 +1,115 @@
+﻿@using Task5.ViewModels;
+@model FakeUserDataViewModel
+
+@{
+    ViewBag.Title = "Fake User Data Generator";
+}
+
+<h2>Fake User Data Generator</h2>
+
+@using (Html.BeginForm())
+{
+    <div class="form-group">
+        @Html.LabelFor(m => m.SelectedRegion)
+        @Html.DropDownListFor(m => m.SelectedRegion, new SelectList(Model.Regions), "Select a region")
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.ErrorPerRecord)
+        <div class="d-flex align-items-center">
+            @Html.TextBoxFor(m => m.ErrorPerRecord, new { @class = "form-control", type = "number", min = "0", max = "1000" })
+            <div class="ml-2">
+                <input type="range" class="form-control-range" id="errorPerRecordSlider" min="0" max="10" value="@Model.ErrorPerRecord" />
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Seed)
+        <div class="d-flex align-items-center">
+            @Html.TextBoxFor(m => m.Seed, new { @class = "form-control", type = "number" })
+            <button type="button" class="btn btn-primary ml-2" id="generateRandomSeed">Generate Random Seed</button>
+        </div>
+    </div>
+   
+    <div class="row">
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Generate Data</button>
+            <button type="button" class="btn btn-success" id="exportToCSV">Export to CSV</button>
+        </div>
+       
+    </div>
+}
+
+<div class="mt-4">
+    <table class="table table-striped" id="fakeUserDataTable">
+        <thead>
+            <tr>
+                <th>Identifier</th>
+                <th>First name</th>
+                <th>Middle name</th>
+                <th>Last name</th>
+                <th>Address</th>
+                <th>Phone</th>
+            </tr>
+        </thead>
+        <tbody id="fakeUserDataTableBody">
+            @Html.Partial("_FakeUserDataTableRows", Model.FakeUserData)
+        </tbody>
+    </table>
+</div>
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            // Bind slider to number field
+            $("#errorPerRecordSlider").on("input", function () {
+                $("#ErrorPerRecord").val($(this).val());
+            });
+
+            // Generate random seed
+            $("#generateRandomSeed").click(function () {
+                $("#Seed").val(Math.floor(Math.random() * 1000000));
+            });
+
+            // Handle infinite scrolling
+            var isLoading = false;
+            var currentPage = 1;
+
+            $(window).scroll(function () {
+                if (($(window).scrollTop() >= $(document).height() - $(window).height() - 100) && !isLoading) {
+                    isLoading = true;
+                    currentPage++;
+                    $.ajax({
+                        url: "@Url.Action("LoadMoreData")",
+                        type: "POST",
+                        data: { page: currentPage },
+                        success: function (data) {
+                            if (data) {
+                                $("#fakeUserDataTableBody").append(data);
+                            }
+                            isLoading = false;
+                        }
+                    });
+                }
+            });
+
+            // Export to CSV
+            $("#exportToCSV").click(function () {
+                $.ajax({
+                    url: "@Url.Action("ExportToCSV")",
+                    type: "POST",
+                    success: function (data) {
+                        // Handle the CSV data response
+                        var downloadLink = document.createElement("a");
+                        downloadLink.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURIComponent(data));
+                        downloadLink.setAttribute("download", "export.csv");
+                        document.body.appendChild(downloadLink);
+                        downloadLink.click();
+                        document.body.removeChild(downloadLink);
+                    }
+                });
+            });
+        });
+    </script>
+}
