@@ -58,6 +58,7 @@ namespace Task5.Controllers
             {
                 int skipRecords = (page - 1) * 10;
                 var data = generatedData.Skip(skipRecords).Take(10).ToList();
+                ViewBag.CurrentPage = page;
                 return PartialView("_FakeUserDataTableRows", data);
             }
             else

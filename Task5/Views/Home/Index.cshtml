@@ -45,6 +45,7 @@
     <table class="table table-striped" id="fakeUserDataTable">
         <thead>
             <tr>
+                <th>Number</th>
                 <th>Identifier</th>
                 <th>First name</th>
                 <th>Middle name</th>
@@ -96,9 +97,17 @@
 
             // Export to CSV
             $("#exportToCSV").click(function () {
+                var currentPage = Math.ceil($("#fakeUserDataTableBody tr").length / 20);
                 $.ajax({
                     url: "@Url.Action("ExportToCSV")",
                     type: "POST",
+                    data: {
+                        page: currentPage,
+                        pageSize: 20,
+                        selectedRegion: $("#SelectedRegion").val(),
+                        errorPerRecord: $("#ErrorPerRecord").val(),
+                        seed: $("#Seed").val()
+                    },
                     success: function (data) {
                         // Handle the CSV data response
                         var downloadLink = document.createElement("a");

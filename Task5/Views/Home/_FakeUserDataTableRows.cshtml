@@ -1,8 +1,12 @@
 ﻿@model IEnumerable<PersonEntity>
-
+@{
+    int rowNumber = 1;
+    if(ViewBag.CurrentPage!=null) rowNumber = (ViewBag.CurrentPage - 1) * 10 + 11;
+}
 @foreach (var item in Model)
 {
     <tr>
+        <td>@(rowNumber++)</td>
         <td>@item.Id</td>
         <td>@item.FirstName</td>
         <td>@item.MiddleName</td>
